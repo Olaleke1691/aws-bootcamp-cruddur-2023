@@ -1,3 +1,4 @@
+
 tasks:
   - name: aws-cli
     env:
@@ -24,3 +25,6 @@ tasks:
       sudo apt install -y postgresql-client-13 libpq-dev
 
       
+vscode:
+  extensions:
+    - cweijan.vscode-postgresql-client2
