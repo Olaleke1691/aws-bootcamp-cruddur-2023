@@ -194,6 +194,15 @@ After this has been installed, locate the Database icon on the left panel, right
 
 ![image](https://user-images.githubusercontent.com/48904934/221522210-39ff3b0f-fdde-426d-9d5f-31b3346d11ee.png)
 
+# Container Security Considerations 
+
+After watching the video about security considerations we analized the project with Snyk tool. (snyk.io)
+
+First we sign up and link to our github account to select a repository.
+
+![image](https://user-images.githubusercontent.com/48904934/221524261-a4bc0acb-12c5-4d6d-92e7-754ae336125f.png)
+
+
 After configuring the Database, proceed to installing the Open API extension on your Gitpod.
 
 Next is to add an andpoint for the notifications tab, to do this click on the hanburger icon located on the right side of the Path. 
@@ -284,6 +293,17 @@ I validated the access to the databases, by creating a table, and put items into
 ![image](https://user-images.githubusercontent.com/48904934/221521860-329c49fd-5c64-4b6f-9505-27c14a156947.png)
 
 ![image](https://user-images.githubusercontent.com/48904934/221521990-932de1c9-7844-4867-9c9e-d9a9b50408dd.png)
+
+In the dashboard of my Synk, I can see the status of my project and it's vulnerablities.
+
+![image](https://user-images.githubusercontent.com/48904934/221557855-30212200-efad-4ac7-b4b3-9576f82fda15.png)
+
+To fix the issue of pending task, I clicked on the fix vulnerablities.
+
+The Recommendations here is for upgrading the base image.
+
+![image](https://user-images.githubusercontent.com/48904934/221559496-51cc6e16-14e1-4600-9627-4852c3e01ece.png)
+
 
 
 
