@@ -24,6 +24,9 @@ ENV FLASK_ENV=development
 EXPOSE ${PORT}
 CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0", "--port=4567"]
 
+<img width="754" alt="image" src="https://user-images.githubusercontent.com/48904934/221507354-a63b6ef6-22aa-4142-8a50-f1247325150e.png">
+
+
 When this is added to the Docker file, the next step I installed python on my machine using the $ pip3 install –r requirements.txt (this is a file found in the directory workspace/backend-flask) in the backend-flask. 
 
 To avoid installing python in my backend everytime I start my GitPod, I added the follwing command to my Gidpod.yml file.
@@ -57,34 +60,20 @@ FRONTEND_URL="*" BACKEND_URL="*" docker run --rm -p 4567:4567 -it backend-flask
 export FRONTEND_URL="*"
 export BACKEND_URL="*"
 docker run --rm -p 4567:4567 -it -e FRONTEND_URL='*' -e BACKEND_URL='*' backend-flask
+docker run --rm -p 4567:4567 -it  -e FRONTEND_URL -e BACKEND_URL backend-flask
 unset FRONTEND_URL="*"
 unset BACKEND_URL="*"
 
-After this is done, I navigated to my port and open the link. this worked, and I saw the profile details of users [ 
-  { 
-    "created_at": "2023-02-18T09:02:52.483145+00:00", 
-    "expires_at": "2023-02-25T09:02:52.483145+00:00", 
-    "handle": "Andrew Brown", 
-    "likes_count": 5, 
-    "message": "Cloud is fun!", 
-    "replies": [ 
-      { 
-        "created_at": "2023-02-18T09:02:52.483145+00:00", 
-        "handle": "Worf", 
-        "likes_count": 0, 
-        "message": "This post has no honor!", 
-        "replies_count": 0, 
-        "reply_to_activity_uuid": "68f126b0-1ceb-4a33-88be-d90fa7109eee", 
-        "reposts_count": 0, 
-        "uuid": "26e12864-1c26-5c3a-9658-97a10f8fea67" 
-      } 
-    ], 
-    "replies_count": 1, 
-    "reposts_count": 0, 
-    "uuid": "68f126b0-1ceb-4a33-88be-d90fa7109eee" 
-  }, 
+After this is done, I navigated to my port and open the link. this worked, and I saw the profile details of users 
 
-After this is done, changed my directory to the front end, in this case which is ‘$ cd frontend-react-js’ and ran an npm install. The npm install is a command used in the Node.js ecosystem to install packages (also known as modules) from the npm registry, which is necessary for our front end to work.
+<img width="758" alt="image" src="https://user-images.githubusercontent.com/48904934/221501317-5a1cc04c-d445-4521-b586-8339c1dc65b2.png">
+
+I proceeded with containerizing the backend.
+
+<img width="337" alt="image" src="https://user-images.githubusercontent.com/48904934/221508094-7d8d9269-6b2e-4f23-a05b-3ae237791416.png">
+
+
+After this is done, changed my directory to the frontend, in this case which is ‘$ cd frontend-react-js’ and ran an npm install. The npm install is a command used in the Node.js ecosystem to install packages (also known as modules) from the npm registry, which is necessary for our front end to work.
 
 After this, I created a Docker file in the frontend-react-js, where I added the following code
 
@@ -97,6 +86,9 @@ WORKDIR /frontend-react-js
 RUN npm install
 EXPOSE ${PORT}
 CMD ["npm", "start"]
+
+<img width="719" alt="image" src="https://user-images.githubusercontent.com/48904934/221508613-8890bcf2-6bde-4a6a-bf77-4c58e1883792.png">
+
 
 Like the backend container, to configure the Docker file on the frontend, I built the container using docker build -t frontend-react-js ./frontend-react-js and build the conatiner docker run -p 3000:3000 -d frontend-react-js which runs on port 3000.
 
@@ -139,6 +131,7 @@ services:
 networks: 
   internal-network:
     driver: bridge
+    name: cruddur
     name: cruddur
  
 
