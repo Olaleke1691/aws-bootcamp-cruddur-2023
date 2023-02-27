@@ -304,6 +304,168 @@ The Recommendations here is for upgrading the base image.
 
 ![image](https://user-images.githubusercontent.com/48904934/221559496-51cc6e16-14e1-4600-9627-4852c3e01ece.png)
 
+After applying the suggestions, the my dashboard still shows there are pending tasks.
+
+![image](https://user-images.githubusercontent.com/48904934/221597832-7f2bf98a-5c8a-4a2c-baa6-c3d5b20ddc3e.png)
+
+Would ask for help on fixing this.
+
+# Wrote a Flask Backend Endpoint for Notifications
+
+The endpoint is going to be added in the start point of the Backend flask, which is /backend-flask/app.py
+
+![image](https://user-images.githubusercontent.com/48904934/221599416-b9b45bb0-1004-48d2-9c20-ae0089171bf1.png)
+
+from services.notifications_activities import *
+
+@app.route("/api/activities/notifications", methods=['GET'])
+def data_notifications():
+  data = NotificationsActivities.run()
+  return data, 200
+
+Next I added a notification function call as seen below
+
+![image](https://user-images.githubusercontent.com/48904934/221599924-a462518e-d2dd-4826-8625-daa452f15556.png)
+
+Next, I added /backend-flask/services/notifications_activities.py 
+
+   
+    '''
+      from datetime import datetime, timedelta, timezone
+      class NotificationsActivities:
+       def run():
+    now = datetime.now(timezone.utc).astimezone()
+    results = [{
+      'uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+      'handle':  'Coco',
+      'message': 'I am a white unicorn!',
+      'created_at': (now - timedelta(days=2)).isoformat(),
+      'expires_at': (now + timedelta(days=5)).isoformat(),
+      'likes_count': 5,
+      'replies_count': 1,
+      'reposts_count': 0,
+      'replies': [{
+        'uuid': '26e12864-1c26-5c3a-9658-97a10f8fea67',
+        'reply_to_activity_uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+        'handle':  'Worf',
+        'message': 'This post has no honor!',
+        'likes_count': 0,
+        'replies_count': 0,
+        'reposts_count': 0,
+        'created_at': (now - timedelta(days=2)).isoformat()
+      }],
+    }
+    ]
+    return results
+    
+# React Page for Notifications
+
+This was achieved by creating the notification page, notification css and the route using the code below.
+
+It was implemeted in the **/frontend-react-js/src/App.js:**
+
+'''
+   import NotificationsFeedPage from './pages/NotificationsFeedPage';
+   const router = createBrowserRouter([
+  ...
+  ...
+  {
+    path: "/notifications",
+    element: <NotificationsFeedPage />
+  },
+  ...
+  ...
+]);
+
+Next, I added in the /frontend-react-js/src/pages/NotificationsFeedPage.js
+
+'''
+    import './NotificationsFeedPage.css';
+    import React from "react";
+
+import DesktopNavigation  from '../components/DesktopNavigation';
+import DesktopSidebar     from '../components/DesktopSidebar';
+import ActivityFeed from '../components/ActivityFeed';
+import ActivityForm from '../components/ActivityForm';
+import ReplyForm from '../components/ReplyForm';
+
+// [TODO] Authenication
+import Cookies from 'js-cookie'
+
+export default function NotificationsFeedPage() {
+  const [activities, setActivities] = React.useState([]);
+  const [popped, setPopped] = React.useState(false);
+  const [poppedReply, setPoppedReply] = React.useState(false);
+  const [replyActivity, setReplyActivity] = React.useState({});
+  const [user, setUser] = React.useState(null);
+  const dataFetchedRef = React.useRef(false);
+
+  const loadData = async () => {
+    try {
+      const backend_url = `${process.env.REACT_APP_BACKEND_URL}/api/activities/notifications`
+      const res = await fetch(backend_url, {
+        method: "GET"
+      });
+      let resJson = await res.json();
+      if (res.status === 200) {
+        setActivities(resJson)
+      } else {
+        console.log(res)
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const checkAuth = async () => {
+    console.log('checkAuth')
+    // [TODO] Authenication
+    if (Cookies.get('user.logged_in')) {
+      setUser({
+        display_name: Cookies.get('user.name'),
+        handle: Cookies.get('user.username')
+      })
+    }
+  };
+
+  React.useEffect(()=>{
+    //prevents double call
+    if (dataFetchedRef.current) return;
+    dataFetchedRef.current = true;
+
+    loadData();
+    checkAuth();
+  }, [])
+
+  return (
+    <article>
+      <DesktopNavigation user={user} active={'notifications'} setPopped={setPopped} />
+      <div className='content'>
+        <ActivityForm  
+          popped={popped}
+          setPopped={setPopped} 
+          setActivities={setActivities} 
+        />
+        <ReplyForm 
+          activity={replyActivity} 
+          popped={poppedReply} 
+          setPopped={setPoppedReply} 
+          setActivities={setActivities} 
+          activities={activities} 
+        />
+        <ActivityFeed 
+          title="Notifications" 
+          setReplyActivity={setReplyActivity} 
+          setPopped={setPoppedReply} 
+          activities={activities} 
+        />
+      </div>
+      <DesktopSidebar user={user} />
+    </article>
+  );
+}
+
+
 
 
 
