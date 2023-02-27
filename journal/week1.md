@@ -89,6 +89,8 @@ CMD ["npm", "start"]
 
 <img width="719" alt="image" src="https://user-images.githubusercontent.com/48904934/221508613-8890bcf2-6bde-4a6a-bf77-4c58e1883792.png">
 
+![image](https://user-images.githubusercontent.com/48904934/221510788-0583f823-6307-4caf-aaf0-026472312a70.png)
+
 
 Like the backend container, to configure the Docker file on the frontend, I built the container using docker build -t frontend-react-js ./frontend-react-js and build the conatiner docker run -p 3000:3000 -d frontend-react-js which runs on port 3000.
 
@@ -133,7 +135,158 @@ networks:
     driver: bridge
     name: cruddur
     name: cruddur
+    
+ ![image](https://user-images.githubusercontent.com/48904934/221520463-9b0546e1-c893-4046-9f00-500b10848020.png)
  
+Once this is done, the next step would be to add databases, where information would be stored locally and retrived.
+
+Doing this, we would be using the DynamoDB Local and Postgres. The DynamoDB local would be installed in the Docker-compose-yml file, using the following code below.
+
+services:
+  dynamodb-local:
+    # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
+    # We needed to add user:root to get this working.
+    user: root
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+    
+The DynamoDB Local is the first to install in your Docker-composer-yml file, then followed by the Postgres DB.
+
+Then added the Postgres Db with the code below ##services:
+  db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
+    
+After this, I added the Postgres client to Gitpod.yml file, so I do not keep installing this everytime I start my Gitpod.
+
+  - name: postgres
+    init: |
+      curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+      echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" |sudo tee  /etc/apt/sources.list.d/pgdg.list
+      sudo apt update
+      sudo apt install -y postgresql-client-13 libpq-dev
+      
+![image](https://user-images.githubusercontent.com/48904934/221512948-b948662b-4163-4271-a727-f2ccd9693833.png)
+
+Next, I installed the Postgres extension on my Gitpod, from your extension market.
+
+![image](https://user-images.githubusercontent.com/48904934/221513877-9e018e0a-399d-4f14-bdca-cc39bf57a097.png)
+
+After this has been installed, locate the Database icon on the left panel, rightclick and click add a new connection.
+
+<img width="260" alt="image" src="https://user-images.githubusercontent.com/48904934/221514995-e3d946ed-df00-447f-afef-0dbc5bf9e97a.png">
+
+![image](https://user-images.githubusercontent.com/48904934/221522210-39ff3b0f-fdde-426d-9d5f-31b3346d11ee.png)
+
+After configuring the Database, proceed to installing the Open API extension on your Gitpod.
+
+Next is to add an andpoint for the notifications tab, to do this click on the hanburger icon located on the right side of the Path. 
+
+![image](https://user-images.githubusercontent.com/48904934/221518328-11fae309-736f-4f6c-a529-1a21b5daf62d.png)
+
+When a new API Path is created, this would create a new line of code in the API.  
+
+Next I renamed the Path to... /api/activities/notifications endpoint.
+
+/api/activities/notifications:
+    get:
+      description: 'Return a feed of activities for all notifications'
+      tags:
+       - activities
+      parameters: []
+      responses:
+        '200':
+          description: Returns an array of activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Activity'
+                  
+AFter this, I Created the service and route for the backend notification feature, this was done from the backend-flask/app.py
+
+import os
+
+from services.home_activities import *
+from services.notifications_activities import *
+from services.user_activities import *
+from services.create_activity import *
+from services.create_reply import *
+@@ -65,6 +66,11 @@ def data_home():
+  data = HomeActivities.run()
+  return data, 200
+
+@app.route("/api/activities/notifications", methods=['GET'])
+def data_notifications():
+  data = NotificationsActivities.run()
+  return data, 200
+
+@app.route("/api/activities/@<string:handle>", methods=['GET'])
+def data_handle(handle):
+  model = UserActivities.run(handle)
+  
+backend-flask/services/notifications_activities.py
+
+from datetime import datetime, timedelta, timezone
+class NotificationsActivities:
+  def run():
+    now = datetime.now(timezone.utc).astimezone()
+    results = [{
+      'uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+      'handle':  'Enyioma Nwadibia',
+      'message': 'Cloud is fun!',
+      'created_at': (now - timedelta(days=2)).isoformat(),
+      'expires_at': (now + timedelta(days=5)).isoformat(),
+      'likes_count': 5,
+      'replies_count': 1,
+      'reposts_count': 0,
+      'replies': [{
+        'uuid': '26e12864-1c26-5c3a-9658-97a10f8fea67',
+        'reply_to_activity_uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+        'handle':  'Worf',
+        'message': 'This post has no honor!',
+        'likes_count': 0,
+        'replies_count': 0,
+        'reposts_count': 0,
+        'created_at': (now - timedelta(days=2)).isoformat()
+      }],
+    },
+    ]
+    return results
+    
+  Created the notification page and route for the frontend app also.
+  
+  ![image](https://user-images.githubusercontent.com/48904934/221520099-46cea84a-7aba-4b06-bae3-b076d894a4fe.png)
+
+I validated the access to the databases, by creating a table, and put items into them and then query the items.
+
+![image](https://user-images.githubusercontent.com/48904934/221521011-a7c73b93-914d-4410-bcb0-2848eb2481ca.png)
+
+![image](https://user-images.githubusercontent.com/48904934/221521608-e6114ffc-fdf0-4530-8a84-fbfc45fe1b8b.png)
+
+![image](https://user-images.githubusercontent.com/48904934/221521860-329c49fd-5c64-4b6f-9505-27c14a156947.png)
+
+![image](https://user-images.githubusercontent.com/48904934/221521990-932de1c9-7844-4867-9c9e-d9a9b50408dd.png)
+
+
+
 
 
 
