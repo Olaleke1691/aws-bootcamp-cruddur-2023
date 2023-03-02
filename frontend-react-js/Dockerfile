@@ -15,3 +15,8 @@ EXPOSE ${PORT}
 #CMD ["npm", "start"]
 RUN chmod +x frontend.sh
 RUN ./frontend.sh
+
+FROM nginx
+EXPOSE 3000
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /frontend-react-js/build /usr/share/nginx/html
