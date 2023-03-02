@@ -5,6 +5,7 @@ FROM node:19.6.1
 WORKDIR /frontend-react-js
 
 ENV PORT=3000
+ENV REACT_APP_BACKEND_URL="https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
 
 COPY . /frontend-react-js
 
