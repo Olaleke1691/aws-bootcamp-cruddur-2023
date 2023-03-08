@@ -14,6 +14,7 @@ ENV FLASK_ENV=developent
 
 EXPOSE ${PORT}
 #python3 -m flask run --host=.0.0.0.0 --port=4567
-CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=4567"]
+# CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0", "--port=4567"]
 #RUN chmod +x backend.sh
 #RUN ./backend.sh
+CMD [ "./backend.sh" ]
