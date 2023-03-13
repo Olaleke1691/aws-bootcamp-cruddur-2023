@@ -21,17 +21,17 @@ from opentelemetry.instrumentation.requests import RequestsInstrumentor
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
+# from opentelemetry.sdk.trace.export import ConsoleSpanExporter
 
-# Honeycomb monitoring service...
+# HoneyComb -----------
 # Initialize tracing and an exporter that can send data to Honeycomb
 provider = TracerProvider()
 processor = BatchSpanProcessor(OTLPSpanExporter())
 provider.add_span_processor(processor)
 
 # Show this in the logs within the backend-flask
-simple_processor = SimpleSpanProcessor(ConsoleSpanExporter())
-provider.add_span_processor(simple_processor)
+#simple_processor = SimpleSpanProcessor(ConsoleSpanExporter())
+#provider.add_span_processor(simple_processor)
 
 trace.set_tracer_provider(provider)
 tracer = trace.get_tracer(__name__)
@@ -41,51 +41,68 @@ app = Flask(__name__)
 # Initialize automatic instrumentation with Flask
 FlaskInstrumentor().instrument_app(app)
 RequestsInstrumentor().instrument()
+
 frontend = os.getenv('FRONTEND_URL')
 backend = os.getenv('BACKEND_URL')
 origins = [frontend, backend]
 cors = CORS(
-  app, 
-  resources={r"/api/*": {"origins": origins}},
-  expose_headers="location,link",
-  allow_headers="content-type,if-modified-since",
-  methods="OPTIONS,GET,HEAD,POST"
+    app,
+    resources={r"/api/*": {"origins": origins}},
+    expose_headers="location,link",
+    allow_headers="content-type,if-modified-since",
+    methods="OPTIONS,GET,HEAD,POST"
 )
 
 @app.route("/api/message_groups", methods=['GET'])
 def data_message_groups():
-  user_handle  = 'andrewbrown'
-  model = MessageGroups.run(user_handle=user_handle)
-  if model['errors'] is not None:
-    return model['errors'], 422
-  else:
-    return model['data'], 200
+    user_handle = 'andrewbrown'
+    model = MessageGroups.run(user_handle=user_handle)
+    if model['errors'] is not None:
+        return model['errors'], 422
+    else:
+        return model['data'], 200
 
 @app.route("/api/messages/@<string:handle>", methods=['GET'])
 def data_messages(handle):
-  user_sender_handle = 'andrewbrown'
-  user_receiver_handle = request.args.get('user_reciever_handle')
+    user_sender_handle = 'andrewbrown'
+    user_receiver_handle = request.args.get('user_reciever_handle')
 
-  model = Messages.run(user_sender_handle=user_sender_handle, user_receiver_handle=user_receiver_handle)
-  if model['errors'] is not None:
-    return model['errors'], 422
-  else:
-    return model['data'], 200
-  return
+    model = Messages.run(user_sender_handle=user_sender_handle,
+                         user_receiver_handle=user_receiver_handle)
+    if model['errors'] is not None:
+        return model['errors'], 422
+    else:
+        return model['data'], 200
+    return
 
-@app.route("/api/messages", methods=['POST','OPTIONS'])
+#@app.route("/api/messages", methods=['POST','OPTIONS'])
+#@cross_origin()
+#def data_create_message():
+  #user_sender_handle = 'andrewbrown'
+  #user_receiver_handle = request.json['user_receiver_handle']
+  #message = request.json['message']
+
+  #model = CreateMessage.run(message=message,user_sender_handle=user_sender_handle,user_receiver_handle=user_receiver_handle)
+  #if model['errors'] is not None:
+    #return model['errors'], 422
+  #else:
+    #return model['data'], 200
+  #return
+
+@app.route("/api/messages", methods=['POST', 'OPTIONS'])
 @cross_origin()
 def data_create_message():
-  user_sender_handle = 'andrewbrown'
-  user_receiver_handle = request.json['user_receiver_handle']
-  message = request.json['message']
+    user_sender_handle = 'andrewbrown'
+    user_receiver_handle = request.json['user_receiver_handle']
+    message = request.json['message']
 
-  model = CreateMessage.run(message=message,user_sender_handle=user_sender_handle,user_receiver_handle=user_receiver_handle)
-  if model['errors'] is not None:
-    return model['errors'], 422
-  else:
-    return model['data'], 200
-  return
+    model = CreateMessage.run(
+        message=message, user_sender_handle=user_sender_handle, user_receiver_handle=user_receiver_handle)
+    if model['errors'] is not None:
+        return model['errors'], 422
+    else:
+        return model['data'], 200
+    return
 
 @app.route("/api/activities/home", methods=['GET'])
 def data_home():
