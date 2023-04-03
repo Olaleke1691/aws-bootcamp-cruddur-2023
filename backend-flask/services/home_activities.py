@@ -48,5 +48,5 @@ class HomeActivities:
       'replies': []
     }
     ]
-    span.set.attribute("app.result_lenght", len(results))
+    span.set_attribute ("app.result_length", len(results))
     return results
