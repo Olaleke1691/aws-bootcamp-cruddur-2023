@@ -27,6 +27,8 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
+#had to define the app before this could work and researched from documentation
+app = Flask(__name__)
 
 # HoneyComb -----------
 # Initialize tracing and an exporter that can send data to Honeycomb
