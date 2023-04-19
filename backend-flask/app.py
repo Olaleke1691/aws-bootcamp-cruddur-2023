@@ -39,6 +39,7 @@ console_handler = logging.StreamHandler()
 cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur')
 LOGGER.addHandler(console_handler)
 LOGGER.addHandler(cw_handler)
+logger.info('test log')
 
 
 #had to define the app before this could work and researched from documentation
