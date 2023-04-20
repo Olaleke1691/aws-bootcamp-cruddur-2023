@@ -30,20 +30,20 @@ from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 # cloudwatch...
 import watchtower
 import logging
-from time import strftime
+
 
 # Configuring Logger to Use CloudWatch
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
-console_handler = logging.StreamHandler()
-cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur')
-LOGGER.addHandler(console_handler)
-LOGGER.addHandler(cw_handler)
-logger.info('test log')
+#LOGGER = logging.getLogger(__name__)
+#LOGGER.setLevel(logging.DEBUG)
+#console_handler = logging.StreamHandler()
+#cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur')
+#LOGGER.addHandler(console_handler)
+#LOGGER.addHandler(cw_handler)
+#logger.info('test log')
 
 
 #had to define the app before this could work and researched from documentation
-app = Flask(__name__)
+#app = Flask(__name__)
 
 # HoneyComb -----------
 # Initialize tracing and an exporter that can send data to Honeycomb
@@ -54,7 +54,7 @@ provider.add_span_processor(processor)
 #xray....................
 xray_url = os.getenv("AWS_XRAY_URL")
 xray_recorder.configure(service='backend-flask', dynamic_naming=xray_url)
-XRayMiddleware(app, xray_recorder)
+
 # Show this in the logs within the backend-flask
 #simple_processor = SimpleSpanProcessor(ConsoleSpanExporter())
 #provider.add_span_processor(simple_processor)
@@ -68,6 +68,9 @@ app = Flask(__name__)
 FlaskInstrumentor().instrument_app(app)
 RequestsInstrumentor().instrument()
 
+# X-RAY ------------
+XRayMiddleware(app, xray_recorder)
+
 frontend = os.getenv('FRONTEND_URL')
 backend = os.getenv('BACKEND_URL')
 origins = [frontend, backend]
@@ -79,11 +82,11 @@ cors = CORS(
     methods="OPTIONS,GET,HEAD,POST"
 )
 
-@app.after_request
-def after_request(response):
-    timestamp = strftime('[%Y-%b-%d %H:%M]')
-    LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
-    return response
+#@app.after_request
+#def after_request(response):
+    #timestamp = strftime('[%Y-%b-%d %H:%M]')
+    #LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
+    #return response
 
 @app.route("/api/message_groups", methods=['GET'])
 def data_message_groups():
@@ -93,6 +96,7 @@ def data_message_groups():
         return model['errors'], 422
     else:
         return model['data'], 200
+    
 
 @app.route("/api/messages/@<string:handle>", methods=['GET'])
 def data_messages(handle):
@@ -107,19 +111,20 @@ def data_messages(handle):
         return model['data'], 200
     return
 
-#@app.route("/api/messages", methods=['POST','OPTIONS'])
-#@cross_origin()
-#def data_create_message():
-  #user_sender_handle = 'andrewbrown'
-  #user_receiver_handle = request.json['user_receiver_handle']
-  #message = request.json['message']
+@app.route("/api/messages", methods=['POST','OPTIONS'])
+@cross_origin()
+def data_create_message():
+  user_sender_handle = 'andrewbrown'
+  user_receiver_handle = request.json['user_receiver_handle']
+  message = request.json['message']
 
-  #model = CreateMessage.run(message=message,user_sender_handle=user_sender_handle,user_receiver_handle=user_receiver_handle)
-  #if model['errors'] is not None:
-    #return model['errors'], 422
-  #else:
-    #return model['data'], 200
-  #return
+  model = CreateMessage.run(
+    message=message,user_sender_handle=user_sender_handle,user_receiver_handle=user_receiver_handle)
+  if model['errors'] is not None:
+    return model['errors'], 422
+  else:
+    return model['data'], 200
+  return
 
 @app.route("/api/messages", methods=['POST', 'OPTIONS'])
 @cross_origin()
@@ -147,6 +152,7 @@ def data_notifications():
   return data, 200
 
 @app.route("/api/activities/@<string:handle>", methods=['GET'])
+@xray_recorder.capture('activities_user')
 def data_handle(handle):
   model = UserActivities.run(handle)
   if model['errors'] is not None:
@@ -178,6 +184,7 @@ def data_activities():
   return
 
 @app.route("/api/activities/<string:activity_uuid>", methods=['GET'])
+@xray_recorder.capture('activities_show')
 def data_show_activity(activity_uuid):
   data = ShowActivity.run(activity_uuid=activity_uuid)
   return data, 200
