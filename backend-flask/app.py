@@ -126,21 +126,6 @@ def data_create_message():
     return model['data'], 200
   return
 
-@app.route("/api/messages", methods=['POST', 'OPTIONS'])
-@cross_origin()
-def data_create_message():
-    user_sender_handle = 'andrewbrown'
-    user_receiver_handle = request.json['user_receiver_handle']
-    message = request.json['message']
-
-    model = CreateMessage.run(
-        message=message, user_sender_handle=user_sender_handle, user_receiver_handle=user_receiver_handle)
-    if model['errors'] is not None:
-        return model['errors'], 422
-    else:
-        return model['data'], 200
-    return
-
 @app.route("/api/activities/home", methods=['GET'])
 def data_home():
   data = HomeActivities.run()
