@@ -96,21 +96,28 @@ cors = CORS(
 
 # Rollbar....
 rollbar_access_token = os.getenv('ROLLBAR_ACCESS_TOKEN')
-@app._got_first_request
+
 def init_rollbar():
     """init rollbar module"""
     rollbar.init(
         # access token
-        rollbar_access_token,
+        'fb83065db175491e97c6065f11acd578',
         # environment name
         'production',
         # server root directory, makes tracebacks prettier
         root=os.path.dirname(os.path.realpath(__file__)),
         # flask already sets up logging
-        allow_logging_basic_config=False)
-
+        allow_logging_basic_config=False
+    )
     # send exceptions from `app` to rollbar, using flask's signal system.
     got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+
+# The Flask object app does not have the attribute before_first_request available.
+# To resolve this, I can used the app.run method to specify the init_rollbar function to be executed before the first request. 
+# By moving the init_rollbar function outside of the Flask application object and calling it before the app.run() method, I ensure that the function is executed before the Flask application starts handling requests.
+if __name__ == '__main__':
+    init_rollbar()
+    app.run() 
 
 @app.route('/rollbar/test')
 def rollbar_test():
