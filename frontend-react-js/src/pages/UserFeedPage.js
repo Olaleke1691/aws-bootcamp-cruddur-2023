@@ -47,17 +47,16 @@ export default function UserFeedPage() {
     }
   };
 
-  React.useEffect(()=>{
-    //prevents double call
+  React.useEffect(() => {
+    // prevents double call
     if (dataFetchedRef.current) return;
     dataFetchedRef.current = true;
-
+  
     loadData();
     checkAuth();
-  }, [])
-
-  return (
-    <article>
+  }, [loadData]);
+ 
+<article>
       <DesktopNavigation user={user} active={'profile'} setPopped={setPopped} />
       <div className='content'>
         <ActivityForm popped={popped} setActivities={setActivities} />
@@ -65,5 +64,5 @@ export default function UserFeedPage() {
       </div>
       <DesktopSidebar user={user} />
     </article>
-  );
+;
 }
