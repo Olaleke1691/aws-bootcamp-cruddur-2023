@@ -1,6 +1,6 @@
 # Use a multi-stage build to reduce image size
 # Stage 1: Build the application
-FROM node:16.18 AS build
+FROM node:16.20.2 AS build
 
 WORKDIR /frontend-react-js
 
