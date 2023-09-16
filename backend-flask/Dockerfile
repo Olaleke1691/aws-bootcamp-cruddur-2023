@@ -1,5 +1,5 @@
 #FROM python:3.10-slim-buster -> Removed by Snyk recommendation
-FROM python:3.10.10-slim
+FROM python:3.12.0rc1-slim
 
 RUN apt-get update \ 
  && apt-get install -y curl build-essential
